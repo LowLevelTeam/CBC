@@ -5,13 +5,9 @@
 
 ## Overview
 
-CBC is the official interpreter and runtime for COIL Byte Code, a lightweight bytecode format derived from COIL (Computer Oriented Intermediate Language). CBC provides a portable execution environment for COIL programs in scenarios where ahead-of-time compilation to native code is impractical or undesirable.
+CBC is the interpreter and runtime for COIL Byte Code, a lightweight bytecode format derived from COIL (Computer Oriented Intermediate Language). CBC provides an execution environment for situations where ahead-of-time compilation to native code is impractical or undesirable.
 
-CBC serves as:
-- A runtime for dynamic languages built on COIL
-- An execution environment for portable COIL applications
-- A Just-In-Time compiler for high-performance interpretation
-- A component for mixed execution environments (native + interpreted)
+CBC serves as an alternative execution path in the COIL Toolchain, offering flexibility and portability over raw performance.
 
 ## Features
 
@@ -21,8 +17,25 @@ CBC serves as:
 - **Variable System**: Complete support for COIL's variable abstraction
 - **Memory Management**: Efficient memory model with multiple allocation strategies
 - **Multi-platform**: Runs on Windows, macOS, Linux, and embedded systems
-- **Extensibility**: Pluggable backends for different execution strategies
 - **Debugging Support**: Full debug information and breakpoint support
+
+## COIL Toolchain Integration
+
+CBC provides an alternative execution path in the COIL compilation workflow:
+
+```
+                     ┌─── COILP ─── OS Linker ─── Native Executable
+                     │
+Source (.casm) ─── CASM ─┤
+                     │
+                     └─── COIL2CBC ─── CBC Interpreter ─── Interpreted Execution
+```
+
+CBC is particularly useful for:
+- Dynamic language implementations
+- Quick iteration during development
+- Cross-platform portability
+- Environments with limited native compilation support
 
 ## Installation
 
@@ -31,35 +44,18 @@ CBC serves as:
 - C++17 compliant compiler
 - CMake 3.15+
 - libcoil-dev 1.0.0+
-- LLVM 13+ (optional, for enhanced JIT capabilities)
+- LLVM 13+ (optional, for JIT capabilities)
 
 ### Building from Source
 
 ```bash
-# Clone the repository
 git clone https://github.com/LLT/cbc.git
 cd cbc
-
-# Create build directory
 mkdir build && cd build
-
-# Generate build files
 cmake ..
-
-# Build
 cmake --build .
-
-# Install
 cmake --install .
 ```
-
-### Pre-built Binaries
-
-Pre-built binaries are available for major platforms:
-
-- [Windows x64](https://github.com/LLT/cbc/releases/download/v1.0.0/cbc-1.0.0-win-x64.zip)
-- [macOS x64](https://github.com/LLT/cbc/releases/download/v1.0.0/cbc-1.0.0-macos-x64.tar.gz)
-- [Linux x64](https://github.com/LLT/cbc/releases/download/v1.0.0/cbc-1.0.0-linux-x64.tar.gz)
 
 ## Usage
 
@@ -77,11 +73,9 @@ cbcrun [options] program.cbc [program arguments]
 | `-t <trace>` | Enable tracing (none, basic, detailed) |
 | `-m <memory>` | Set memory limit (e.g., 512M, 1G) |
 | `-j` | Enable JIT compilation |
-| `-j-threshold <n>` | Set JIT compilation threshold |
 | `-O <level>` | Set optimization level (0-3) |
 | `-g` | Enable debugging support |
 | `-h, --help` | Display help message |
-| `--version` | Display version information |
 
 ### Examples
 
@@ -118,41 +112,13 @@ Key characteristics:
 
 ## Memory Model
 
-CBC uses a simplified memory model with five distinct regions:
+CBC uses a structured memory model with five distinct regions:
 
 1. **Code Memory**: Read-only section containing instructions
 2. **Constant Memory**: Read-only section containing constants
 3. **Stack Memory**: Automatic memory for local variables and operands
 4. **Heap Memory**: Dynamic memory allocation
 5. **Variable Storage**: Abstract storage for variables (similar to COIL)
-
-## Execution Models
-
-CBC supports three primary execution models:
-
-### 1. Pure Interpretation
-
-The interpreter directly executes CBC instructions without compilation:
-- Decodes each instruction and performs the corresponding operation
-- Maintains a variable table mapping IDs to storage locations
-- Suitable for environments where JIT is unavailable or startup time is critical
-
-### 2. Just-In-Time (JIT) Compilation
-
-The JIT compiler translates hot code paths to native code:
-- Initially interprets all code
-- Monitors execution frequency to identify hot paths
-- Compiles frequently executed code to native instructions
-- Maintains compatibility with the interpreted portions
-- Balances startup time with runtime performance
-
-### 3. Ahead-of-Time (AOT) Compilation
-
-For environments that support it, CBC can be pre-compiled:
-- Translates all CBC to native code before execution
-- Eliminates interpretation overhead
-- Maintains the CBC format for portability
-- Suitable for performance-critical applications with predictable behavior
 
 ## Converting COIL to CBC
 
@@ -168,26 +134,18 @@ coilo-extract [options] input.coilo -o output.cbc
 
 ## Documentation
 
-Comprehensive documentation is available in the `docs/` directory and online at [coil-lang.org/cbc/docs](https://coil-lang.org/cbc/docs):
+Documentation is available in the `docs/` directory:
 
-- [CBC Format Reference](https://coil-lang.org/cbc/docs/format.html)
-- [Instruction Set Reference](https://coil-lang.org/cbc/docs/instructions.html)
-- [Memory Model](https://coil-lang.org/cbc/docs/memory-model.html)
-- [JIT Configuration](https://coil-lang.org/cbc/docs/jit.html)
-- [Debugging Guide](https://coil-lang.org/cbc/docs/debugging.html)
-- [Performance Guide](https://coil-lang.org/cbc/docs/performance.html)
-- [Examples](https://coil-lang.org/cbc/docs/examples/)
+- [CBC Format Reference](docs/format.md)
+- [Instruction Set Reference](docs/instructions.md)
+- [Memory Model Documentation](docs/memory-model.md)
+- [JIT Configuration Guide](docs/jit.md)
+- [Debugging Guide](docs/debugging.md)
 
-## Integration with Other Tools
+## Workflow Integration
 
-CBC is designed to work seamlessly with other COIL ecosystem tools:
+CBC works seamlessly with other COIL ecosystem tools:
 
-- `casm`: The COIL assembler can target CBC directly
-- `coilp`: The COIL processor can embed CBC sections in COILO files
-- `coil2cbc`: Converts COIL objects to CBC format
-- `cbcdbg`: CBC debugger for interactive debugging
-
-Typical workflow:
 ```bash
 # Assemble CASM to COIL
 casm program.casm -o program.coil
@@ -198,14 +156,6 @@ coil2cbc program.coil -o program.cbc
 # Run CBC program
 cbcrun program.cbc
 ```
-
-## Contributing
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to CBC.
-
-## Implementation
-
-For details on the implementation approach, architecture, and development plans, see [IMPLEMENTATION.md](IMPLEMENTATION.md).
 
 ## License
 
